@@ -1,8 +1,4 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
+
 
 import React, { Component } from 'react';
 import {
@@ -20,97 +16,49 @@ import Header from '../components/Header';
 import Item from '../components/Item';
 import GridView from '../components/GridView';
 import DividingLine from '../components/DividingLine';
-export default class MainContainer extends Component {
-    
-    constructor(props) {  
-        super(props);  
-        this.state = {  
-            loading: false,
-            footer:"正在加载...",
-            pageIndex:0,
-            datas:null,
-            dataSource: new ListView.DataSource({  
-                rowHasChanged: function(row1, row2) {return row1 !== row2},  
-            })
-        };
-    }
+import {resetAction,refreshSuccessedAction,loadMoreSuccessedAction,failedAction} from '../actions/Actions';
+import {BlogListData} from '../actions/API';
+import { connect } from 'react-redux';
+
+const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+class MainContainer extends Component {
     
     componentDidMount() {
         this._onRefresh();
     }
     
     _onRefresh() {
-        this.state.loading = true;
-        this.state.pageIndex = 0;
-        fetch("http://116.62.49.210/InstagramServer/reactNativeTestUrl",{
-            method:'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'action=0&pageIndex='+this.state.pageIndex,
-        })
-        .then((response) => response.json())
-        .then((responseJson) => {
-            this.state.loading = false;
-            const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-            this.state.datas = responseJson;
-            this.state.footer = "正在加载...";
-            this.state.datas.statuses.push(-1);
-            this.setState({dataSource: ds.cloneWithRows(this.state.datas.statuses)});
-        }).catch(err => {
-            this.state.loading = false;
+        const {dispatch} = this.props;
+        dispatch(resetAction());
+        BlogListData(this.props.pageIndex,(response)=>{
+            dispatch(refreshSuccessedAction(response));
+        },(error)=>{
+            dispatch(failedAction());
         });
     }
+    
     _toEnd(){
-        if(!this.state.loading){
-            this.state.pageIndex = ++this.state.pageIndex;
-            fetch("http://116.62.49.210/InstagramServer/reactNativeTestUrl",{
-                method:'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'action=0&pageIndex='+this.state.pageIndex,
-            })
-            .then((response) => response.json())
-            .then((responseJson) => {
-                this.state.loading = false;
-                let data = responseJson;
-                
-                const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-                if(this.state.datas.statuses.length>0){
-                    this.state.datas.statuses.pop();
-                }
-                for(var i=0;i<data.statuses.length;i++){
-                    this.state.datas.statuses.push(data.statuses[i]);
-                }
-                
-                if(data.statuses.length==0){
-                    this.state.footer = "全部加载完毕";
-                    this.state.datas.statuses.push(-2);
-                }else{
-                    this.state.footer = "正在加载...";
-                    this.state.datas.statuses.push(-1);
-                }
-                
-                this.setState({dataSource: ds.cloneWithRows(this.state.datas.statuses)});
-            }).catch(err => {
-                this.state.loading = false;
-                this.state.pageIndex = --this.state.pageIndex;
-            }); 
+        const {dispatch} = this.props;
+        if(!this.props.loading){
+            BlogListData(this.props.pageIndex,(response)=>{
+                dispatch(loadMoreSuccessedAction(response));
+            },(error)=>{
+                dispatch(failedAction());
+            });
         }
     }
     
     _renderRow(rowData) {
         if(rowData==-1){
             return (
-                <Text style={styles.footerText}>{this.state.footer}</Text>
+                <Text style={styles.footerText}>{this.props.footer}</Text>
             )
         }else if(rowData==-2){
             return (
-                <Text style={styles.footerText}>{this.state.footer}</Text>
+                <Text style={styles.footerText}>{this.props.footer}</Text>
             )
         }else{
-           return (<Item data={rowData} navigator={this.props.navigator}/>
+           return (<Item data={rowData} navigator={this.props.navigator} store={this.props.store}/>
         ); 
         }
     }
@@ -120,14 +68,14 @@ export default class MainContainer extends Component {
         <View style={styles.container}>
             <Header title={"特别关注"} showIconLeft={false}/>
             <ListView style={styles.listView}
-                dataSource={this.state.dataSource}
+                dataSource={this.props.dataSource}
                 enableEmptySections={true}
                 renderRow={this._renderRow.bind(this)}
                 onEndReached={ this._toEnd.bind(this) }
                 onEndReachedThreshold={10}
                 refreshControl={
                     <RefreshControl
-                        refreshing={this.state.loading}
+                        refreshing={this.props.loading}
                         onRefresh={this._onRefresh.bind(this)}/>
                 }
             />
@@ -136,10 +84,21 @@ export default class MainContainer extends Component {
     }
 }
 
+function select(store){
+  return {
+      loading: store.ListReducer.loading,
+      footer:store.ListReducer.footer,
+      pageIndex:store.ListReducer.pageIndex,
+      datas:store.ListReducer.data,
+      dataSource:store.ListReducer.dataSource
+  }
+}
+export default connect(select)(MainContainer);
+
 const styles = StyleSheet.create({
   container: {
-     flex: 1,
-     backgroundColor: '#F7F7F7',
+      flex: 1,
+      backgroundColor: '#F7F7F7',
   },
   listView: {
       flex: 1,

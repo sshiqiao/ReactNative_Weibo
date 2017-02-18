@@ -12,11 +12,13 @@ import {
   View,
   Navigator
 } from 'react-native';
-
+import { Provider } from 'react-redux';
 import MainContainer from './app/containers/MainContainer'; 
+import store from './app/store/Store';
 export default class ReactNative_Weibo extends Component {
   render() {  
     return (  
+        <Provider store={store}>  
         <Navigator  
             initialRoute={{ name: "MainContainer", component: MainContainer }}  
             configureScene={(route) => {  
@@ -27,6 +29,7 @@ export default class ReactNative_Weibo extends Component {
             return <Component {...route.params} navigator={navigator} />  
         }}
         />  
+        </Provider>
     );  
   }  
 }

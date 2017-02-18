@@ -14,12 +14,13 @@ import {
   Image,
   DeviceEventEmitter
 } from 'react-native';
+import { connect } from 'react-redux';
 
 import * as Constants from '../common/Constants';
 import GridView from '../components/GridView';
 import DividingLine from '../components/DividingLine';
 import DetailContainer from '../containers/DetailContainer'; 
-export default class Item extends Component {
+class Item extends Component {
   
     constructor(props) {  
         super(props);  
@@ -41,7 +42,7 @@ export default class Item extends Component {
     }
     render() {
         return (
-            <TouchableOpacity onPress = {() =>this._onPressItem(this.state.data)} >
+            <TouchableOpacity onPress = {() =>this._onPressItem(this.state.data)} activeOpacity={0.9}>
                 <DividingLine lineWidth={0.5} color={'#F0F0F0'}/>
                 <View style={styles.listItemView}>
                     <View style={{flex: 1, flexDirection: 'row'}}>
@@ -81,6 +82,11 @@ export default class Item extends Component {
         
     }
 }
+function select(store){
+  return {
+  }
+}
+export default connect(select)(Item);
 const styles = StyleSheet.create({
 
   listItemView: {
