@@ -30,7 +30,7 @@ class MainContainer extends Component {
     _onRefresh() {
         const {dispatch} = this.props;
         dispatch(resetAction());
-        BlogListData(this.props.pageIndex,(response)=>{
+        BlogListData(0,(response)=>{
             dispatch(refreshSuccessedAction(response));
         },(error)=>{
             dispatch(failedAction());

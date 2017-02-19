@@ -1,9 +1,9 @@
 let Utils = {
     get: (url, successCallback, failCallback) => {
         fetch(url)
-        .then((response) => response.text())
-        .then((responseText) => {
-            successCallback(JSON.parse(responseText));
+        .then((response) => response.json())
+        .then((responseJson) => {
+            successCallback(responseJson);
         })
         .catch((err) => {
             failCallback(err);

@@ -7,7 +7,7 @@ import {
 import { combineReducers } from 'redux' 
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 const initialState = {
-    loading: false,
+    loading: true,
     footer:"正在加载...",
     pageIndex:0,
     datas:null,
@@ -19,7 +19,10 @@ let ListReducer = (state = initialState, action) => {
         case types.RESET:
             return Object.assign({}, state, {
                 loading: true,
-                pageIndex: 0
+                footer:"正在加载...",
+                pageIndex:0,
+                datas:null,
+                dataSource: ds
             });
         case types.REFRESH_SUCCESSED:
             state.pageIndex = ++state.pageIndex;
